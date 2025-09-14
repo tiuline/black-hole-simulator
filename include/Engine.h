@@ -3,24 +3,32 @@
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <BlackHole.h>
 
 class Engine
 {
-public:
-    GLFWwindow* window;
-    int width;
-    int height;
+    private:
+        GLuint blackHoleVAO;
+        GLuint blackHoleVBO;
+        int blackHoleVertexCount;
+        GLuint shaderProgram;
 
-    float vWidth; 
-    float vHeight;
-    
-    float offsetX, offsetY;
-    float zoom;
-    bool middleMousePressed;
-    double lastMouseX, lastMouseY;
+        void initBlackHoleCircle(float radius);
+        GLuint compileShader(const char* vertexSrc, const char* fragmentSrc);
 
-    Engine();
-    void run();
+    public:
+        GLFWwindow* window;
+        int width;
+        int height;
+        
+        float offsetX, offsetY;
+        float zoom;
+        bool middleMousePressed;
+        double lastMouseX, lastMouseY;
+        
+        Engine();
+        ~Engine();
+        void run();
 };
 
 #endif
