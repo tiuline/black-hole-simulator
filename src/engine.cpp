@@ -24,6 +24,10 @@ std::string loadShaderSource(const std::string& filePath)
     return buffer.str();
 }
 
+
+// -------------------
+// -- Motor Grafico --
+// -------------------
 Engine::Engine()
     : width(800), height(600)
 {
@@ -65,6 +69,7 @@ Engine::Engine()
     shaderProgram = compileShader(vertexCode.c_str(), fragmentCode.c_str());
 
     initBlackHoleCircle(0.1f);
+    initRays();
     glViewport(0,0, width, height);;
 }
 
@@ -125,8 +130,16 @@ void Engine::run()
     float aspect = static_cast<float>(width) / height;
     glm::mat4 projection = glm::ortho(-aspect, aspect, -1.0f, 1.0f);
 
+    float lastTime = glfwGetTime();
+
     while (!glfwWindowShouldClose(window))
     {
+        float currentTime = glfwGetTime();
+        float deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        updateRays(deltaTime);
+
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shaderProgram);
@@ -138,7 +151,56 @@ void Engine::run()
         glDrawArrays(GL_TRIANGLE_FAN, 0, blackHoleVertexCount);
         glBindVertexArray(0);
 
+        renderRays();
+
         glfwSwapBuffers(window);
         glfwPollEvents();
+    }
+}
+
+// -------------------
+// ------ Raios ------
+// -------------------
+void Engine::initRays()
+{
+    int numRays = 15;
+    float startY = -1.0f;
+    float endY = 1.0f;
+
+    for (int i = 0; i < numRays; ++i)
+    {
+        float t = static_cast<float>(i) / (numRays - 1);
+        float y = startY + t * (endY - startY);
+        Ray r(glm::vec2(-1.0f, y), glm::vec2(1.0f, 0.0f)); // Da esquerda pra direita
+        rays.push_back(r);
+        rayTrails.push_back({ r.position }); // Começa com posição inicial
+    }
+}
+
+void Engine::updateRays(float deltaTime)
+{
+    float speed = 0.5f; // unidades por segundo
+
+    for (size_t i = 0; i < rays.size(); ++i)
+    {
+        rays[i].step(speed * deltaTime);
+        rayTrails[i].push_back(rays[i].position);
+    }
+}
+
+void Engine::renderRays()
+{
+    glUseProgram(0); // Usa fixed pipeline (simples)
+
+    glColor3f(1.0f, 1.0f, 1.0f); // Branco
+
+    for (const auto& trail : rayTrails)
+    {
+        glBegin(GL_LINE_STRIP);
+        for (const auto& point : trail)
+        {
+            glVertex2f(point.x, point.y);
+        }
+        glEnd();
     }
 }

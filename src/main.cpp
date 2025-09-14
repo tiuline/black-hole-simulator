@@ -16,6 +16,7 @@ using namespace std;
 
 int main()
 {
+    const double SCALE_METERS_PER_UNIT = 1.268388173965468e10;
     Engine engine;
 
     engine.run();
